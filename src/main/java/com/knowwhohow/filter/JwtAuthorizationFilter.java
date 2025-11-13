@@ -1,5 +1,6 @@
 package com.knowwhohow.filter;
 
+import com.knowwhohow.entity.BankUser;
 import com.knowwhohow.repository.BankUserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
@@ -62,6 +64,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 setupAuthentication(ci);
             }
 
+        } catch (UsernameNotFoundException e) {
+            // DB에 사용자가 없는 경우, 401 Unauthorized로 처리하여 접근 차단
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("User not found in DB: Invalid CI mapping.");
+            return;
         } catch (JwtException e) {
             // 서명 오류 (토큰 변조) 시 401 Unauthorized
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -78,20 +85,21 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     private void setupAuthentication(String ci) {
-        // CI를 사용하여 내부 DB에서 user_id를 조회하는 로직
-        bankUserRepository.findByUserCode(ci).ifPresent(bankUser -> {
-            Long userId = bankUser.getUserId();
+        BankUser bankUser = bankUserRepository.findByUserCode(ci)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with CI: " + ci));
 
-            // 조회된 user_id를 Principal 객체로 설정 -> Authentication 객체 생성
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userId,
-                    null,
-                    Collections.emptyList()
-            );
+        Long userId = bankUser.getUserId();
 
-            // 생성된 Authentication 객체를 Security Context에 등록
-            // 등록된 user_id가 필터 체인 이후 인가의 최종 기준이 됨
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        });
+        // 조회된 user_id를 Principal 객체로 설정 -> Authentication 객체 생성
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userId,
+                null,
+                Collections.emptyList()
+        );
+
+        // 생성된 Authentication 객체를 Security Context에 등록
+        // 등록된 user_id가 필터 체인 이후 인가의 최종 기준이 됨
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
     }
 }
