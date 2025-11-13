@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.knowwhohow.service.FinancialDataServiceTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-11-12T02:30:01.441Z" hostname="3-26" time="1.463">
-  <properties/>
-  <testcase name="shouldReturnFlattenedFinancialDataAndVerifyAuthorization()" classname="com.knowwhohow.service.FinancialDataServiceTest" time="1.463"/>
-  <system-out><![CDATA[TEST SUCCESS: DTO 평탄화 및 통합 조회 로직이 올바르게 작동합니다.
-]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
