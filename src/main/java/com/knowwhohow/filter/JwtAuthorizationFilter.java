@@ -48,8 +48,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         try {
             // 2. Access Token 유효성 검증(RS256 서명 검증) 및 CI 추출
-            Claims claims = Jwts.parser()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(this.signingKey) // Key를 설정
+                    .build()
                     .parseClaimsJws(token) // 서명 및 만료일 검증
                     .getBody();
 

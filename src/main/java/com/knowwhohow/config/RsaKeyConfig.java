@@ -1,34 +1,41 @@
 package com.knowwhohow.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 @Configuration
 public class RsaKeyConfig {
 
+    // 1. application.yml에서 AS의 공개 키 주입
+    @Value("${mydata.auth.public-key}")
+    private String publicKey;
+
     @Bean
     public PublicKey publicKeyFromAS() {
         try {
-            // AS의 KeyPairGenerator 로직과 동일하게 RSA 키 페어를 생성합니다.
-            KeyPair keyPair = generateRsaKey();
-            return (RSAPublicKey) keyPair.getPublic();
-        } catch (Exception ex) {
-            throw new IllegalStateException("Failed to create RSA Public Key Bean for JWT validation.", ex);
-        }
-    }
+            // 2. 문자열 디코딩
+            byte[] keyBytes = Base64.getDecoder().decode(publicKey);
 
-    // AS의 KeyPairGenerator 로직 복사
-    private static KeyPair generateRsaKey() {
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            return keyPairGenerator.generateKeyPair();
+            // 3. 인코딩 키 사양 생성
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+
+            // 4. PublicKey 객체 생성 (RSA)
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+            // 5. 객체 반환
+            return keyFactory.generatePublic(keySpec);
+
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to generate RSA KeyPair.", ex);
+            throw new IllegalStateException("Failed to load and create RSA Public Key from configuration. Check 'mydata.auth.public-key' value.", ex);
         }
     }
 }
