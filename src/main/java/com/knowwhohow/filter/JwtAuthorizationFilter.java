@@ -22,6 +22,7 @@ import java.util.Collections;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final BankUserRepository bankUserRepository;
+    // signingKey = AS의 공개 키
     private final Key signingKey;
 
     private static final String CI_CLAIM_NAME = "ci";
@@ -48,11 +49,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         try {
             // 2. Access Token 유효성 검증(RS256 서명 검증) 및 CI 추출
             Claims claims = Jwts.parser()
-                    .setSigningKey(this.signingKey) // 👈 Key를 설정
-                    .parseClaimsJws(token) // 👈 서명 및 만료일 검증
+                    .setSigningKey(this.signingKey) // Key를 설정
+                    .parseClaimsJws(token) // 서명 및 만료일 검증
                     .getBody();
 
-            // 3. Payload에서 CI 클레임 추출 (CI == user_code)
+            // 3. Payload에서 CI 추출 (CI == user_code)
             String ci = claims.get(CI_CLAIM_NAME, String.class);
 
             // 4. CI -> user_id 매핑 및 Context 설정
@@ -76,16 +77,19 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     private void setupAuthentication(String ci) {
-        // CI를 사용하여 내부 DB에서 user_id를 조회하는 기존 로직은 유지됩니다.
+        // CI를 사용하여 내부 DB에서 user_id를 조회하는 로직
         bankUserRepository.findByUserCode(ci).ifPresent(bankUser -> {
             Long userId = bankUser.getUserId();
 
+            // 조회된 user_id를 Principal 객체로 설정 -> Authentication 객체 생성
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userId,
                     null,
                     Collections.emptyList()
             );
 
+            // 생성된 Authentication 객체를 Security Context에 등록
+            // 등록된 user_id가 필터 체인 이후 인가의 최종 기준이 됨
             SecurityContextHolder.getContext().setAuthentication(authentication);
         });
     }
