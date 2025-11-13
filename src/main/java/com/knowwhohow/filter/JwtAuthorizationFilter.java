@@ -2,13 +2,13 @@ package com.knowwhohow.filter;
 
 import com.knowwhohow.entity.BankUser;
 import com.knowwhohow.repository.BankUserRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,19 +66,15 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         } catch (UsernameNotFoundException e) {
             // DB에 사용자가 없는 경우, 401 Unauthorized로 처리하여 접근 차단
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("User not found in DB: Invalid CI mapping.");
-            return;
-        } catch (JwtException e) {
-            // 서명 오류 (토큰 변조) 시 401 Unauthorized
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("JWT Signature validation failed (Token Tampered).");
-            return;
-        } catch (Exception e) {
-            // 토큰 유효성 검증 실패 시 401 Unauthorized 응답
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("JWT token is invalid or expired.");
-            return; // 필터 체인 중단
+            SecurityContextHolder.clearContext();
+
+            throw new AuthenticationCredentialsNotFoundException("User not found in DB: Invalid CI mapping.");
+
+        } catch (SignatureException | MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+            SecurityContextHolder.clearContext();
+
+            throw new AuthenticationCredentialsNotFoundException("JWT validation failed: " + e.getMessage());
+
         }
 
         filterChain.doFilter(request, response);

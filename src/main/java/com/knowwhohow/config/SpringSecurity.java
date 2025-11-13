@@ -16,10 +16,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SpringSecurity {
 
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     // custom filter 주입
-    public SpringSecurity(JwtAuthorizationFilter jwtAuthorizationFilter) {
+    public SpringSecurity(JwtAuthorizationFilter jwtAuthorizationFilter, RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
     }
 
     @Bean
@@ -28,16 +30,14 @@ public class SpringSecurity {
                 // Custom Filter 등록
                 .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
 
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                )
+
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().authenticated()
                 )
 
-                // OAuth2 리소스 서버 기능 활성화
-                // (yml의 issuer-uri를 바탕으로 JWT 서명 및 만료시간을 검증)
-                //.oauth2ResourceServer(oauth2 -> oauth2
-                //        .jwt(Customizer.withDefaults())
-                //)
-                // custom filter 사용으로 제거(제거 전 잠시 주석처리로 대체)
 
                 // API 서버는 세션(쿠키)을 사용하지 않음 (Stateless)
                 .sessionManagement(session -> session
