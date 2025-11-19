@@ -1,0 +1,20 @@
+services:
+  backend:
+    image: ${DOCKER_USERNAME}/knowwhohow-resource:latest
+    container_name: backend
+    restart: always
+    ports:
+      - "8366:8080"
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    environment:
+      # [핵심 2] 인증 서버 주소를 호스트 머신 기준으로 설정
+      # (컨테이너 내부에서 호스트의 8377 포트를 바라봄)
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://host.docker.internal:8377
+
+      # [핵심 3] DB 주소도 호스트 머신 기준으로 설정 (8803 포트)
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:8803/my_data_resource?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root      # DB 사용자명에 맞게 수정
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}  # DB 비밀번호에 맞게 수정
