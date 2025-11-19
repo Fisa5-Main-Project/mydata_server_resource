@@ -1,37 +1,36 @@
 package com.knowwhohow.config;
 
-import com.knowwhohow.filter.JwtAuthorizationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @Configuration
 @EnableWebSecurity
 public class SpringSecurity {
 
-    private final JwtAuthorizationFilter jwtAuthorizationFilter;
-    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final Converter<Jwt, AbstractAuthenticationToken> ciBasedAuthenticationConverter;
 
-    // custom filter 주입
-    public SpringSecurity(JwtAuthorizationFilter jwtAuthorizationFilter, RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
-        this.jwtAuthorizationFilter = jwtAuthorizationFilter;
-        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+    public SpringSecurity(Converter<Jwt, AbstractAuthenticationToken> ciBasedAuthenticationConverter) {
+        this.ciBasedAuthenticationConverter = ciBasedAuthenticationConverter;
     }
 
     @Bean
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Custom Filter 등록
-                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
 
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                .oauth2ResourceServer(oauth2 -> oauth2
+                                .jwt(jwt -> jwt
+                                        // JWT 검증 성공 후, CI -> user_id 매핑 로직을 Converter에 위임
+                                        .jwtAuthenticationConverter(ciBasedAuthenticationConverter)
+                                )
                 )
 
                 .authorizeHttpRequests(authorize -> authorize
