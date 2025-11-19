@@ -30,7 +30,7 @@ public class CiBasedAuthenticationConverter implements Converter<Jwt, AbstractAu
         // 2. CI를 사용하여 DB에서 BankUser(user_id) 조회
         Long userId = bankUserRepository.findByUserCode(ci)
                 .map(bankUser -> bankUser.getUserId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with CI: " + ci));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found for the given token."));
 
         // 3. user_id를 Principal로 하는 Authentication 객체 생성
         return new UsernamePasswordAuthenticationToken(
