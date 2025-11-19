@@ -17,9 +17,15 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SpringSecurity {
 
     private final Converter<Jwt, AbstractAuthenticationToken> ciBasedAuthenticationConverter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint; // 👈 EntryPoint 필드 추가
 
-    public SpringSecurity(Converter<Jwt, AbstractAuthenticationToken> ciBasedAuthenticationConverter) {
+
+    public SpringSecurity(
+            Converter<Jwt, AbstractAuthenticationToken> ciBasedAuthenticationConverter,
+            RestAuthenticationEntryPoint restAuthenticationEntryPoint
+    ) {
         this.ciBasedAuthenticationConverter = ciBasedAuthenticationConverter;
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
     }
 
     @Bean
@@ -31,6 +37,7 @@ public class SpringSecurity {
                                         // JWT 검증 성공 후, CI -> user_id 매핑 로직을 Converter에 위임
                                         .jwtAuthenticationConverter(ciBasedAuthenticationConverter)
                                 )
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
                 )
 
                 .authorizeHttpRequests(authorize -> authorize
