@@ -1,0 +1,7 @@
+services:
+  backend:
+    image: ${DOCKER_USERNAME}/knowwhohow-resource:latest
+    container_name: backend
+    restart: always
+    ports:
+      - "8366:8080"
