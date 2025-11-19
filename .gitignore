@@ -213,3 +213,5 @@ application.yml
 .gradle/
 .idea/
 .mysql-data/
+
+[Dd]uild/
