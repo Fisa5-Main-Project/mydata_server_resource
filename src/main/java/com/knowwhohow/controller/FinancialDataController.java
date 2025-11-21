@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("/api/v1/financial-data")
+@RequestMapping("/api/v1")
 public class FinancialDataController {
 
     private final FinancialDataService financialDataService;
@@ -26,7 +26,7 @@ public class FinancialDataController {
      * 시퀀스의 "검증 후 CI값에 맞는 데이터 반환" 단계에 해당
      * 인가: @AuthenticationPrincipal로 SecurityContext의 user_id를 주입받아 소유권 검증에 사용
      */
-    @GetMapping
+    @GetMapping("/my-data")
     public ResponseEntity<ApiResponse<FinancialDataResponse>> getAllFinancialData(
             @AuthenticationPrincipal Long authenticatedUserId
     ) {
