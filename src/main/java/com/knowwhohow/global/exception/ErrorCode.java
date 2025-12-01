@@ -16,8 +16,12 @@ public enum ErrorCode {
     NOT_LOGIN_USER(HttpStatus.FORBIDDEN, "SECURITY_002", "로그인하지 않은 사용자입니다."),
 
     // certification exception
-    NOT_USER(HttpStatus.NOT_FOUND, "CERTIFICATION_001", "사용자를 찾을 수 없습니다.");
+    NOT_USER(HttpStatus.NOT_FOUND, "CERTIFICATION_001", "사용자를 찾을 수 없습니다."),
 
+    // Aes exception
+    FAIL_ENCRYPT(HttpStatus.FORBIDDEN, "AES_001", "암호화 실패"),
+    FAIL_DECRYPT(HttpStatus.FORBIDDEN, "AES_002", "복호화 실패"),
+    SHORT_KEY(HttpStatus.FORBIDDEN, "AES_003", "암호화 키 길이는 반드시 32자여야 합니다.");
 
     private final HttpStatus status;    // HTTP 상태
     private final String code;          // API 응답에 사용할 커스텀 에러 코드 (HTTP 상태 코드와 동일하게)

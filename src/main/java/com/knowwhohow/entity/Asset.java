@@ -1,5 +1,6 @@
 package com.knowwhohow.entity;
 
+import com.knowwhohow.config.EncryptConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public class Asset {
     private AssetType assetType; // Enum: CURRENT, SAVINGS, INVEST, PENSION
 
     @Column(name = "account_number", nullable = false)
+    @Convert(converter = EncryptConverter.class)
     private String accountNumber;
 
     @Column(name = "balance", nullable = false)
@@ -34,7 +36,7 @@ public class Asset {
 
     // --- 관계 매핑 ---
     // BankUser와의 N:1 관계 (필수). asset_id 필드는 user_id를 가리킴
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false)
     private BankUser bankUser;
 
