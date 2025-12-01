@@ -26,7 +26,7 @@ public class Pension {
 
     // --- 관계 매핑 ---
     // Asset과의 N:1 관계 (필수). @MapsId를 사용하여 asset_id를 PK이자 FK로 사용
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
 

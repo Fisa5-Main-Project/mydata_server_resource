@@ -1,5 +1,6 @@
 package com.knowwhohow.entity;
 
+import com.knowwhohow.config.EncryptConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class BankUser {
     private Long userId;
 
     @Column(name = "user_name", nullable = false)
+    @Convert(converter = EncryptConverter.class)
     private String userName;
 
     @Column(name = "user_age", nullable = false)
@@ -30,6 +32,7 @@ public class BankUser {
     private Gender userGender; // Enum: F, M
 
     @Column(name = "user_code", nullable = false)
+    @Convert(converter = EncryptConverter.class)
     private String userCode;
 
     // --- 관계 매핑 ---
