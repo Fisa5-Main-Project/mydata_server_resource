@@ -5,6 +5,7 @@ import com.knowwhohow.repository.BankUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -18,20 +19,21 @@ public class CiBasedAuthenticationConverter implements Converter<Jwt, AbstractAu
 
     private final BankUserRepository bankUserRepository;
     private final HashUtil hashUtil;
-    private static final String CI_CLAIM_NAME = "ci";
 
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         // 1. JWT의 Payload에서 CI 클레임 추출
-        String ci = jwt.getClaimAsString(CI_CLAIM_NAME);
+        String encryptedCi = jwt.getSubject();
 
-        if (ci == null) {
-            // CI 클레임이 없으면 인증 실패로 간주
-            throw new UsernameNotFoundException("CI claim is missing in the JWT.");
+        String originCi;
+        try {
+            originCi = AesUtil.decrypt(encryptedCi);
+        } catch (Exception e) {
+            throw new BadCredentialsException("Invalid Token: Cannot decrypt CI.", e);
         }
 
         // 2. CI를 사용하여 DB에서 BankUser(user_id) 조회
-        Long userId = bankUserRepository.findByUserCodeHash(hashUtil.generateHash(ci))
+        Long userId = bankUserRepository.findByUserCodeHash(hashUtil.generateHash(originCi))
                 .map(BankUser::getUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found for the given token."));
 
