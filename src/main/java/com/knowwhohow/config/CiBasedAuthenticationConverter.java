@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,6 +16,7 @@ import java.util.Collections;
 public class CiBasedAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
     private final BankUserRepository bankUserRepository;
+    private final HashUtil hashUtil;
     private static final String CI_CLAIM_NAME = "ci";
 
     @Override
@@ -28,7 +30,7 @@ public class CiBasedAuthenticationConverter implements Converter<Jwt, AbstractAu
         }
 
         // 2. CI를 사용하여 DB에서 BankUser(user_id) 조회
-        Long userId = bankUserRepository.findByUserCode(ci)
+        Long userId = bankUserRepository.findByUserCode(hashUtil.generateHash(ci))
                 .map(bankUser -> bankUser.getUserId())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found for the given token."));
 
