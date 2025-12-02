@@ -1,5 +1,6 @@
 package com.knowwhohow.config;
 
+import com.knowwhohow.entity.BankUser;
 import com.knowwhohow.repository.BankUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
@@ -30,8 +31,8 @@ public class CiBasedAuthenticationConverter implements Converter<Jwt, AbstractAu
         }
 
         // 2. CI를 사용하여 DB에서 BankUser(user_id) 조회
-        Long userId = bankUserRepository.findByUserCode(hashUtil.generateHash(ci))
-                .map(bankUser -> bankUser.getUserId())
+        Long userId = bankUserRepository.findByUserCodeHash(hashUtil.generateHash(ci))
+                .map(BankUser::getUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found for the given token."));
 
         // 3. user_id를 Principal로 하는 Authentication 객체 생성
