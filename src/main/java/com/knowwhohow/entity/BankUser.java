@@ -31,9 +31,12 @@ public class BankUser {
     @Column(name = "user_gender", nullable = false)
     private Gender userGender; // Enum: F, M
 
-    @Column(name = "user_code", nullable = false)
+    @Column(name = "user_code", nullable = false, unique = true)
     @Convert(converter = EncryptConverter.class)
     private String userCode;
+
+    @Column(nullable = false)
+    private String userCodeHash;
 
     // --- 관계 매핑 ---
     // 자산과의 1:N 관계. mappedBy는 Asset 클래스의 "bankUser" 필드를 참조

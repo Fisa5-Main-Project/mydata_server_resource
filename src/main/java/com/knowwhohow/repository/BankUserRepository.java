@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface BankUserRepository extends JpaRepository<BankUser, Long> {
 
-    Optional<BankUser> findByUserCode(String userCode);
+    Optional<BankUser> findByUserCodeHash(String userCode);
 }
