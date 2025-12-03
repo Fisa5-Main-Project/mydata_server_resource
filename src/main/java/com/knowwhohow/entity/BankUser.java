@@ -1,5 +1,6 @@
 package com.knowwhohow.entity;
 
+import com.knowwhohow.config.EncryptConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class BankUser {
     private Long userId;
 
     @Column(name = "user_name", nullable = false)
+    @Convert(converter = EncryptConverter.class)
     private String userName;
 
     @Column(name = "user_age", nullable = false)
@@ -29,8 +31,12 @@ public class BankUser {
     @Column(name = "user_gender", nullable = false)
     private Gender userGender; // Enum: F, M
 
-    @Column(name = "user_code", nullable = false)
+    @Column(name = "user_code", nullable = false, unique = true)
+    @Convert(converter = EncryptConverter.class)
     private String userCode;
+
+    @Column(nullable = false)
+    private String userCodeHash;
 
     // --- 관계 매핑 ---
     // 자산과의 1:N 관계. mappedBy는 Asset 클래스의 "bankUser" 필드를 참조
